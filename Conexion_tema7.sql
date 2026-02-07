@@ -161,6 +161,51 @@ where provincia = 'MADRID' or provincia = 'CACERES';
 /*21) Mostrar los datos de los pedidos del cliente 1001 en los que las fechas de pedido y envío
 coincidan*/
 select *
+from pedidos
+where id_cliente = 1001 and fecha_pedido = fecha_envio;
+
+
+/*22) Mostrar los datos de los pedidos del cliente 1001 o que cumplan que la fecha de envío es 4
+días posterior a la fecha de pedido.*/
+select *
+from pedidos
+where id_cliente = 1001 and fecha_envio-fecha_pedido >= 4;
+
+/*23) Mostrar nombre, apellidos, provincia y código postal de los clientes que se apelliden Pelayo
+en la provincia de CACERES o de los clientes cuyo código postal termine en 9.*/
+select nombre, apellidos, provincia, cod_postal
 from clientes
-where id_cliente = '1001' and fecha_pedido = fecha_envio;
+where apellidos = 'Pelayo' and provincia = 'CACERES' or cod_postal like '%9';
+
+/*24) Mostrar nombre, apellidos, provincia y código postal de los clientes que se apelliden Pelayo
+y de cualquier otro cliente que viva en la provincia de CACERES o tenga un código postal que
+termine en 9.*/
+select nombre, apellidos, provincia, cod_postal
+from clientes
+where apellidos = 'Pelayo' or provincia = 'CACERES' or cod_postal like '%9';
+
+/*25) Mostrar los datos de los proveedores que tienen su sede en CACERES, ORENSE o MADRID*/
+select *
+from proveedores
+where provincia = 'CACERES' or provincia = 'ORENSE' or provincia = 'MADRID';
+
+/*26) Listar los clientes cuyo apellido empieza por H.*/
+select *
+from clientes
+where apellidos like 'H%';
+
+select *
+from clientes
+where ciudad != 'Robledo' or ciudad != 'Somosierra';
+
+
+
+
+
+
+
+
+
+
+
 
