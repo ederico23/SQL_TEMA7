@@ -194,11 +194,38 @@ select *
 from clientes
 where apellidos like 'H%';
 
+/*27) Listar los clientes que no viven en Robledo ni en Somosierra*/
 select *
 from clientes
-where ciudad != 'Robledo' or ciudad != 'Somosierra';
+where ciudad != 'Robledo' and ciudad != 'Somosierra';
 
+/*28) Mostrar el número de pedido, el id_cliente y la fecha de pedido de todos los pedidos que ha
+realizado el cliente 1001 ordenado por fecha de pedido.*/
+select numero_pedido, id_cliente, fecha_pedido
+from pedidos
+where id_cliente = 1001 order by fecha_pedido;
 
+/*29) Mostrar un listado en orden alfabético de los nombres de productos que empiezan por
+'Dog'*/
+select nombre 
+from productos
+where nombre like 'Dog%' order by nombre;
+
+/*30) Listar los nombres de todos los proveedores con sede en Batres, Belmonte o Robledo*/
+select *
+from proveedores
+where ciudad = 'Batres' or ciudad = 'Belmonte' or ciudad = 'Robledo';
+
+/*31) Mostrar en orden alfabético la lista de los nombres de productos cuyo precio de venta sea
+igual o superior a 125.00 euros.*/
+select *
+from productos
+where precio_venta >= 125 order by nombre;
+
+/*32) Listar en orden alfabético los nombres de los proveedores que no tienen página web.*/
+select *
+from proveedores 
+where pag_web is null;
 
 
 
