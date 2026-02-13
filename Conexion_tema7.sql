@@ -95,7 +95,7 @@ from clientes
 where upper(apellidos) = 'Sanz';
 
 /*13) ¿Cuáles son los nombres de los clientes que viven en la provincia de MADRID?*/
-select nombre, provincia
+select nombre
 from clientes
 where upper(provincia) = 'MADRID';
 
@@ -106,7 +106,7 @@ where upper(provincia) = 'MADRID';
 • que hicieron pedidos en Mayo*/
 
 --viven en la provincia de MADRID
-select nombre, apellidos, provincia
+select nombre, apellidos
 from clientes
 where upper(provincia) = 'MADRID';
 
@@ -121,17 +121,37 @@ from clientes
 where cod_postal = '45915';
 
 --hicieron pedidos en mayo
-
+select nombre, apellidos
+from clientes 
+where id_cliente in(select id_cliente
+                        from pedidos
+                        where extract(month from fecha_pedido)=1);
+                        
+-- solucion 2
+select distinct nombre, apellidos
+from clientes join pedidos on clientes, id_cliente = pedidos.id_cliente
+where to_char(pedidos.fecha_pedido, 'MM')='05';
 
 /*15) ¿Hay pedidos en los que la fecha de envío fue puesta accidentalmente anterior a la fecha de
 pedido?*/
-select numero_pedido, fecha_pedido - fecha_envio as "errores"
+--ESTO ESTÁ MAL
+select numero_pedido, fecha_envio - fecha_pedido as errores
 from pedidos;
+
+--solucion1
+select numero_pedido
+from pedidos
+where fecha_envio<fecha_pedido;
+
+--solucion2
+select count(*) as "ERROR_FECHA ENVIO"
+from pedidos
+where fecha_envio<fecha_pedido;
 
 /*16) Mostrar el nombre y apellidos de los clientes cuyos apellidos empiezan por 'Pe'*/
 select nombre, apellidos
 from clientes
-where apellidos like 'Pe%';
+where upper(apellidos) like 'Pe%';
 
 
 /*17) Mostrar el nombre y dirección de los proveedores cuya dirección incluya la cadena 'del'*/
@@ -141,22 +161,22 @@ where direccion like '%del%';
 
 /*18) Listar el nombre y apellidos de los clientes que viven en Somosierra y cuyo apellido empieza
 con la letra ‘S’.*/
-select nombre, apellidos, ciudad
+select nombre, apellidos
 from clientes
 where apellidos like 'S%' and ciudad = 'Somosierra';
 
 /*19) Listar el nombre y apellidos de los clientes que viven en Somosierra o en la provincia de
 ORENSE.*/
-select nombre, apellidos, ciudad, provincia
+select nombre, apellidos
 from clientes
-where apellidos like 'S%' and ciudad = 'Somosierra' or provincia = 'ORENSE';
+where ciudad = 'Somosierra' or provincia = 'ORENSE';
 
 
 /*20) Mostrar una lista de los nombres y número de teléfono de los proveedores de las provincias
 de MADRID y CACERES.*/
-select nombre, telefono, provincia
+select nombre, telefono
 from proveedores
-where provincia = 'MADRID' or provincia = 'CACERES';
+where upper(provincia) = 'MADRID' or upper(provincia) = 'CACERES';
 
 /*21) Mostrar los datos de los pedidos del cliente 1001 en los que las fechas de pedido y envío
 coincidan*/
@@ -169,7 +189,12 @@ where id_cliente = 1001 and fecha_pedido = fecha_envio;
 días posterior a la fecha de pedido.*/
 select *
 from pedidos
-where id_cliente = 1001 and fecha_envio-fecha_pedido >= 4;
+where id_cliente = 1001 or fecha_envio-fecha_pedido = 4;
+
+--para contarlos
+select count (*)
+from pedidos
+where id_cliente = 1001 or fecha_envio-fecha_pedido = 4;x
 
 /*23) Mostrar nombre, apellidos, provincia y código postal de los clientes que se apelliden Pelayo
 en la provincia de CACERES o de los clientes cuyo código postal termine en 9.*/
@@ -223,9 +248,149 @@ from productos
 where precio_venta >= 125 order by nombre;
 
 /*32) Listar en orden alfabético los nombres de los proveedores que no tienen página web.*/
-select *
+select nombre
 from proveedores 
-where pag_web is null;
+where pag_web is null order by nombre;
+
+/*33) Intersección: Listar los número de pedidos en los que se han pedido tanto bicicletas
+(sabiendo que sus números de producto son 1, 2, 6 y 11) como cascos (sabiendo que sus
+números de producto son 10, 25 y 26)*/
+
+select distinct d1.numero_pedido
+from detalles_pedidos d1 join detalles_pedidos d2 on (d1.numero_pedido = d2.numero_pedido)
+where d1.numero_producto in (1,2,6,11) and d2.numero_producto in (10,25,26);
+
+--solucion 2
+select numero_pedido
+from detalles pedidos
+where numero_producto in (1,2,6,11)
+intersect 
+select numero_pedido
+from detalles pedidos
+where numero_producto in (10,25,26);
+
+
+/*34) Diferencia: Listar los número de pedidos que han comprado alguna bicicleta (sabiendo que
+sus números de producto son 1, 2, 6 y 11) pero no cascos (sabiendo que sus números de
+producto son 10, 25 y 26)*/
+
+select numero_pedido
+from detalles_pedidos
+where numero_producto in (1,2,6,11)
+minus
+select numero_pedido
+from detalles_pedidos
+where numero_producto(10,25,26);
+
+--NO FUNCIONA!!!!--
+
+
+/*35) Unión: Listar los número de pedidos que han comprado alguna bicicleta (sabiendo que sus
+números de producto son 1, 2, 6 y 11) o algún casco (sabiendo que sus números de producto
+son 10, 25 y 26). */
+select distinct numero_pedido 
+from detalles_pedidos 
+where numero_producto IN (1, 2, 6, 11, 10, 25, 26);
+
+
+/*36) Clientes y empleados que tienen el mismo nombre.*/
+
+select nombre 
+from clientes
+intersect
+select nombre
+from empleados;
+
+--solucion2
+select distinct nombre
+from clientes
+where nombre in (select nombre
+                from empleados);
+
+/*37) Clientes cuyos nombres no coinciden con los de ningún empleado.*/
+select nombre 
+from clientes
+minus
+select nombre 
+from empleados;
+
+--solucion con el exist--
+select distinct nombre
+from clientes c
+where not exists (select nombre
+                  from empleados
+                  where nombre = c.nombre);
+
+/*38) Ciudades en las que viven clientes pero ningún empleado.*/
+select distinct ciudad 
+from clientes
+minus
+select distinct ciudad 
+from empleados;
+
+
+/*39. Listar todos los números de pedidos en los que se ha vendido algún producto cuyo número
+de producto es mayor que el número del producto con nombre 'Shinoman 105 SC Frenos'. No
+deben repetirse números de pedido*/
+select numero_pedido
+from detalles_pedidos
+where numero_producto > (select numero_producto
+                       from productos
+                       where nombre = 'Shinoman 105 SC Frenos');
+                       
+/*40. Selecciona todos los nombres de proveedores que llevan productos que empiezan por la
+letra C y se enviaron en pedidos antes del 1 de Marzo del 2008.*/      
+
+--los que empiezan por C
+select nombre
+from productos
+where upper(nombre) like 'C%';
+
+--los que se enviaron antes de la fecha
+select numero_pedido
+from pedidos
+where fecha_pedido < '01/03/2008';
+
+--productos que empiezan por c y se enviaron antes de la fecha
+select distinct numero_producto
+from detalles_pedidos
+where numero_producto in (select nombre
+                            from productos
+                            where upper(nombre) like 'C%')
+                        and 
+                            numero_pedido in (select numero_pedido
+                            from pedidos
+                            where fecha_pedido < '01-03-2008');
+                            
+--solucion final
+select distinct nombre
+from proveedores
+where id_prov in (select distinct id_prov
+                    from productos_proveedores
+                    where numero_producto in (select distinct numero_producto
+                                                from detalles_pedidos
+                                                where numero_producto in (select nombre
+                                                                            from productos
+                                                                            where upper(nombre) like 'C%')
+                                                                        and 
+                                                                            numero_pedido in (select numero_pedido
+                                                                            from pedidos
+                                                                            where fecha_envio < '01/03/2008')));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
