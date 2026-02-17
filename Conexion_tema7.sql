@@ -377,10 +377,102 @@ where id_prov in (select distinct id_prov
                                                                             from pedidos
                                                                             where fecha_envio < '01/03/2008')));
 
+/*41. Selecciona todos los nombres de proveedores que llevan productos que empiezan por la
+letra V y no se han vendido.*/
+select nombre 
+from proveedores 
+where id_prov in (select id_prov
+                from productos 
+                where upper(nombre) like 'V%' 
+                and numero_producto not in (select distinct numero_producto 
+                                            from detalles_pedidos));
+--solucion 2--
+select distinct p.nombre
+from proveedores p join productos_proveedores pp on (p.id_prov=pp.id_prov)
+    join productos pr on (pr.numero_producto=pp.numero_producto)
+    left join detalles_pedidos dp on (pr.numero_producto=dp.numero_producto)
+where upper(pr.nombre) like 'V%' 
+    and pr.numero_producto is null;
 
 
+/*42. Intersección: Listar los clientes que han comprado tanto productos que contengan la cadena
+'Bike' en el nombre como productos que contengan la cadena 'Casco' en el nombre.*/
+select distinct  id_cliente 
+from pedidos 
+where numero_pedido in (select numero_pedido 
+                        from detalles_pedidos 
+                        where numero_producto in (select numero_producto
+                                                  from productos
+                                                  where upper(nombre) like '%BIKE%'))
+                                            intersect
+                                                  select distinct id_cliente 
+                                                  from pedidos 
+                                                  where numero_pedido in (select numero_pedido
+                                                                          from detalles_pedidos 
+                                                                          where numero_producto in (select numero_producto 
+                                                                                                    from productos 
+                                                                                                    where upper(nombre) like '%CASCO%'));
+
+--solucion 2--
 
 
+/*43. Diferencia: Listar los clientes que han comprado algún producto que contenga la cadena
+'Bike' en el nombre pero ningún producto que contenga la cadena 'Casco' en el nombre*/
+select id_cliente 
+from pedidos 
+where numero_pedido in (select numero_pedido 
+                        from detalles_pedidos
+                        where numero_producto in (select numero_producto 
+                                                  from productos
+                                                  where upper(nombre) like '%BIKE%'))
+minus
+select id_cliente 
+from pedidos 
+where numero_pedido in (select numero_pedido
+                        from detalles_pedidos
+                        where numero_producto in (select numero_producto
+                                                  from productos
+                                                  where upper(nombre) like '%CASCO%'));
+                            
+/*44. Unión: Listar los clientes que han comprado algún producto que contenga la cadena 'Bike' o
+la cadena 'Casco' en el nombre.*/
+select distinct id_cliente 
+from pedidos 
+where numero_pedido in (select numero_pedido 
+                        from detalles_pedidos 
+                        where numero_producto in (select numero_producto
+                                                  from productos 
+                                                  where upper(nombre) like '%BIKE%' 
+                                                        or upper(nombre) like '%CASCO%'));          
+                                                        
+/*45. Clientes que viven en una ciudad que no coincide con ninguna de los empleados*/                                                        
+select nombre, ciudad 
+from clientes 
+where ciudad not in (select distinct ciudad
+                     from empleados 
+                     where ciudad is not null);
+                     
+/*46. Lista de los clientes que han comprado algún producto que contenga la cadena 'Bike' en el
+nombre seguida de la lista de los que han comprado algún producto que contenga la cadena
+'Casco' en el nombre (cruce de tablas).*/          
+select c.nombre, 'Compró Bike' as motivo
+from clientes c join pedidos p on c.id_cliente = p.id_cliente
+where p.numero_pedido in (select numero_pedido 
+                          from detalles_pedidos d join productos pr on d.numero_producto = pr.numero_producto 
+                          where pr.nombre like '%Bike%')
+union all
+select c.nombre, 'Compró Casco'
+from clientes c JOIN pedidos p ON c.id_cliente = p.id_cliente
+where p.numero_pedido in (select numero_pedido 
+                          from detalles_pedidos d join productos pr on d.numero_producto = pr.numero_producto 
+                          where pr.nombre like '%Casco%');
+        
+/*47. Seleccionar los nombres de los productos que pertenecen a la categoría 'Componentes'.*/
+select nombre 
+from productos 
+where id_categoria = (select id_categoria 
+                      from categorias
+                      where upper(nombre) = 'Componentes');
 
 
 
